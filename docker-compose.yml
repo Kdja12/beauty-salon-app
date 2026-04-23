@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: salon_postgres
+    environment:
+      POSTGRES_USER: salon_admin
+      POSTGRES_PASSWORD: salon_pass
+      POSTGRES_DB: beauty_salon
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - salon_network
+
+  backend:
+    build: ./backend
+    container_name: salon_backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - postgres
+    environment:
+      DB_HOST: postgres
+      DB_USER: salon_admin
+      DB_PASSWORD: salon_pass
+      DB_NAME: beauty_salon
+    networks:
+      - salon_network
+
+  frontend:
+    build: ./frontend
+    container_name: salon_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - salon_network
+
+volumes:
+  postgres_data:
+
+networks:
+  salon_network:
